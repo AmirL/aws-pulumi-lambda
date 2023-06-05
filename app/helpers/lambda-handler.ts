@@ -1,6 +1,8 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
 import { isHttpError } from '@curveball/http-errors';
 
+// TODO Add barrel file for helpers
+
 export function lambdaHandler(target: Function) {
   return async function (ev: APIGatewayProxyEvent, ctx: Context): Promise<APIGatewayProxyResult> {
     let body;
@@ -14,6 +16,9 @@ export function lambdaHandler(target: Function) {
     }
 
     return {
+      headers: {
+        'Content-Type': 'application/json',
+      },
       statusCode,
       body,
     };

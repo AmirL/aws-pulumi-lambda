@@ -1,16 +1,21 @@
 import * as aws from '@pulumi/aws';
-import { TaskRepository } from '@app/database/task-repository';
+import { findTaskById } from '@app/database/task-repository';
 
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
 import { BadRequest, NotFound } from '@curveball/http-errors';
-import { lambdaHandler } from '@app/helpers/lambdaHandler';
+import { lambdaHandler } from '@app/helpers';
 
-export const getTaskHandler = new aws.lambda.CallbackFunction('get-task', {
+const path = 'GET /task/{id}';
+const name = 'get-task';
+
+/**
+ * Lambda handler for GET /task/{id}
+ **/
+const lambda = new aws.lambda.CallbackFunction(name, {
   callback: lambdaHandler(async function callback(ev: APIGatewayProxyEvent, ctx: Context) {
     const { id } = getParams(ev);
 
-    const taskRepository = new TaskRepository();
-    const task = await taskRepository.findById(id);
+    const task = await findTaskById(id);
 
     if (!task) {
       throw new NotFound('Task not found');
@@ -20,7 +25,9 @@ export const getTaskHandler = new aws.lambda.CallbackFunction('get-task', {
   }),
 });
 
-// TODO Create repository for the project
+/**
+ * Validates and returns the params from the event
+ */
 function getParams(ev: APIGatewayProxyEvent) {
   if (!ev.pathParameters?.id) {
     throw new BadRequest('Missing id');
@@ -28,3 +35,9 @@ function getParams(ev: APIGatewayProxyEvent) {
 
   return { id: ev.pathParameters.id };
 }
+
+export default {
+  path,
+  name,
+  lambda,
+};
