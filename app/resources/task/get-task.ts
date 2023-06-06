@@ -1,10 +1,10 @@
-import { findTaskById } from '@app/database/task-repository';
+import { plainToClass } from 'class-transformer';
+import { BadRequest, NotFound } from '@curveball/http-errors';
+import { taskTable } from '@infrastructure/dynamodb';
 
 import { Event, Context } from '@app/helpers';
-import { BadRequest, NotFound } from '@curveball/http-errors';
-
-const path = 'GET /task/{id}';
-const name = 'get-task';
+import { DynamoDB } from '@app/database';
+import { Task } from '@app/entities';
 
 export default {
   path: 'GET /task/{id}',
@@ -13,24 +13,22 @@ export default {
 };
 
 async function lambda(ev: Event, ctx: Context) {
-  const { id } = getParams(ev);
+  if (!ev.pathParameters?.id) {
+    throw new BadRequest('Missing id');
+  }
 
-  const task = await findTaskById(id);
+  const { id } = ev.pathParameters;
+
+  return getTask(id);
+}
+
+async function getTask(id: string) {
+  // use class to define all fields, including optional ones, with default values
+  const task = plainToClass(Task, await DynamoDB.get(taskTable.name.get(), id));
 
   if (!task) {
     throw new NotFound('Task not found');
   }
 
   return task;
-}
-
-/**
- * Validates and returns the params from the event
- */
-function getParams(ev: Event) {
-  if (!ev.pathParameters?.id) {
-    throw new BadRequest('Missing id');
-  }
-
-  return { id: ev.pathParameters.id };
 }

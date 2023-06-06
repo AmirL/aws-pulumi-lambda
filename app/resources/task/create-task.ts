@@ -1,7 +1,12 @@
-import { createTask } from '@app/database/task-repository';
+import { BadRequest } from '@curveball/http-errors';
+import { plainToClass } from 'class-transformer';
+
+import { taskTable } from '@infrastructure/dynamodb';
 
 import { Event, Context } from '@app/helpers';
-import { BadRequest } from '@curveball/http-errors';
+import { DynamoDB } from '@app/database';
+import { Task } from '@app/entities';
+import { z } from 'zod';
 
 export default {
   path: 'POST /task',
@@ -9,27 +14,38 @@ export default {
   lambda,
 };
 
+type CreateTaskInput = {
+  title: string;
+  description: string;
+  completed: boolean;
+};
+
+// TODO Write a test
 async function lambda(ev: Event, ctx: Context) {
-  const input = getParams(ev);
-  const task = await createTask(input);
-
-  return { task };
-}
-
-function getParams(ev: Event) {
   let input;
 
   try {
     input = JSON.parse(ev.body ?? '');
-  } catch (err) {}
-
-  // todo use dto to validate input
-  if (!input || !input.title || !input.description || typeof input.completed !== 'boolean') {
-    throw new BadRequest('Please provide correct input');
+  } catch (err) {
+    throw new BadRequest('Error parsing JSON input');
   }
-  return {
-    title: input.title,
-    description: input.description,
-    completed: input.completed,
-  };
+
+  // validate input and throw error if invalid
+  z.object({
+    title: z.string().min(3).max(50),
+    description: z.string().max(1000),
+    completed: z.boolean(),
+  })
+    .strict()
+    .parse(input);
+
+  return createTask(input);
+}
+
+export async function createTask(input: CreateTaskInput) {
+  const id = DynamoDB.generateId();
+  // use class to define all fields, including optional ones, with default values
+  const task = plainToClass(Task, { id, ...input });
+  const result = await DynamoDB.put(taskTable.name.get(), task);
+  return task;
 }
