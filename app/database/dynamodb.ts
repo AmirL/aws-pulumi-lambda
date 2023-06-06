@@ -3,7 +3,7 @@ import { DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand } from '@
 import { randomUUID } from 'crypto';
 
 export class DynamoDB {
-  static async get(tableName: string, id: string) {
+  static async get(tableName: string, id: string): Promise<object | undefined> {
     const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
     const command = new GetCommand({
@@ -18,7 +18,7 @@ export class DynamoDB {
     return result.Item;
   }
 
-  static async put<T extends Record<string, any> | undefined>(tableName: string, item: T) {
+  static async put(tableName: string, item: any) {
     const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
     const command = new PutCommand({

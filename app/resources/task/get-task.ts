@@ -1,10 +1,9 @@
-import { plainToClass } from 'class-transformer';
 import { BadRequest, NotFound } from '@curveball/http-errors';
 import { taskTable } from '@infrastructure/dynamodb';
 
 import { Event, Context } from '@app/helpers';
 import { DynamoDB } from '@app/database';
-import { Task } from '@app/entities';
+import { validateTask } from './task-schema';
 
 export default {
   path: 'GET /task/{id}',
@@ -19,16 +18,13 @@ async function lambda(ev: Event, ctx: Context) {
 
   const { id } = ev.pathParameters;
 
-  return getTask(id);
-}
-
-async function getTask(id: string) {
   // use class to define all fields, including optional ones, with default values
-  const task = plainToClass(Task, await DynamoDB.get(taskTable.name.get(), id));
+  const record = await DynamoDB.get(taskTable.name.get(), id);
 
-  if (!task) {
+  if (!record) {
     throw new NotFound('Task not found');
   }
 
-  return task;
+  // shape the data, fill in defaults, and validate it
+  return validateTask(record);
 }

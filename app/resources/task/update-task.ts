@@ -2,11 +2,10 @@ import { BadRequest } from '@curveball/http-errors';
 
 import { taskTable } from '@infrastructure/dynamodb';
 
-import { Event, Context } from '@app/helpers';
+import { Event, Context, parseBodyJson } from '@app/helpers';
 import { DynamoDB } from '@app/database';
-import { Task } from '@app/entities';
 
-import { parseTaskInputJson } from './task-dto';
+import { validateTask } from './task-schema';
 
 export default {
   path: 'PUT /task/{id}',
@@ -19,11 +18,18 @@ async function lambda(ev: Event, ctx: Context) {
     throw new BadRequest('Missing id');
   }
 
-  const task = {
-    id: ev.pathParameters.id,
-    ...parseTaskInputJson(ev),
-  };
+  // parse the body json to an object
+  const json = parseBodyJson(ev);
 
-  await DynamoDB.put<Task>(taskTable.name.get(), task);
+  // shape the data and validate it
+  const task = validateTask({
+    id: ev.pathParameters.id,
+    ...json,
+  });
+
+  // write the task to the database
+  await DynamoDB.put(taskTable.name.get(), task);
+
+  // return the updated task
   return task;
 }
