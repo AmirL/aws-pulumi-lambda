@@ -1,5 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { randomUUID } from 'crypto';
 
 export class DynamoDB {
@@ -9,7 +9,7 @@ export class DynamoDB {
     const command = new GetCommand({
       TableName: tableName,
       Key: {
-        id: id,
+        id,
       },
     });
 
@@ -18,13 +18,28 @@ export class DynamoDB {
     return result.Item;
   }
 
-  static async put(tableName: string, item: any) {
+  static async put<T extends Record<string, any> | undefined>(tableName: string, item: T) {
     const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
     const command = new PutCommand({
       TableName: tableName,
       Item: {
         ...item,
+      },
+    });
+
+    const result = await docClient.send(command);
+
+    return result;
+  }
+
+  static async delete(tableName: string, id: string) {
+    const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+
+    const command = new DeleteCommand({
+      TableName: tableName,
+      Key: {
+        id,
       },
     });
 
