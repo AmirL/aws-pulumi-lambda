@@ -1,2 +1,6 @@
 config:
+  aws-pulumi-todo-app:audience:
+    secure: AAABAJu2poUT2UGa3j9spWkhpNbXxijuMkOGs1MCltlcCKc7k55VLBYO3A==
+  aws-pulumi-todo-app:issuer:
+    secure: AAABAB4GZWsswZNGY5/PyLQ3rzv1JG3F4Vls01Pr2KIfTrW35VnrxgFFJ9lwaDhjo2BJLCW8mJgWvVCWR9AcbvmqP/e5Zti8obo=
   aws:region: eu-central-1
