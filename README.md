@@ -12,13 +12,12 @@ Also, this app can be scaled to handle any amount of traffic, as it uses DynamoD
 - [Configure AWS Credentials](https://www.pulumi.com/docs/intro/cloud-providers/aws/setup/)
 - [Create an Auth0 API](https://auth0.com/docs/get-started/dashboard/tenant-settings#create-an-api)
 - Set secrets for Auth0:
-  ````console
+  ```console
   pulumi config set --secret audience <audience>
   pulumi config set --secret issuer <issuer>
-  ```console
-  ````
-- Deploy the stack:
   ```
+- Deploy the stack:
+  ```console
   pulumi up
   ```
 
@@ -31,7 +30,7 @@ After the stack is deployed, you can test the API with the following commands:
 - Create a TODO item:
 
   ```console
-  curl --location '\<API-URL\>/task' \
+  curl --location $(pulumi stack output endpoint)/task \
   --header 'Content-Type: application/json' \
   --header 'Authorization: Bearer \<JWT-TOKEN\>' \
   --data '{
@@ -41,7 +40,6 @@ After the stack is deployed, you can test the API with the following commands:
     } '
   ```
 
-  - API url will be printed by Pulumi after the stack is deployed.
   - JWT token for the test can be obtained from the Auth0 dashboard, under the "Test" tab of the API.
 
 ## Diagram:
