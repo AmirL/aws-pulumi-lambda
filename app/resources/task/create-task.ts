@@ -1,9 +1,9 @@
 import { taskTable } from '@infrastructure/dynamodb';
 
 import { Event, Context, parseBodyJson } from '@app/helpers';
-import { DynamoDB } from '@app/database';
+import DynamoDB from '@app/helpers/dynamodb';
 
-import { validateTask } from './task-schema';
+import { validateInput, validateTask } from './task-schema';
 
 export default {
   path: 'POST /task',
@@ -11,18 +11,24 @@ export default {
   lambda,
 };
 
-async function lambda(ev: Event, ctx: Context) {
+async function lambda(ev: Event, ctx: Context, userId: string) {
   // parse the body json to an object
   const json = parseBodyJson(ev);
 
-  // shape the data and validate it
+  // validate the input
+  const input = validateInput(json);
+
+  // shape the data to the full task and validate it (with defaults if needed)
   const task = validateTask({
+    ...input,
     id: DynamoDB.generateId(),
-    ...json,
+    userId,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   });
 
   // write the task to the database
-  await DynamoDB.put(taskTable.name.get(), task);
+  await DynamoDB.create(taskTable.name.get(), task);
 
   // return the created with the id
   return task;

@@ -45,3 +45,7 @@ After the stack is deployed, you can test the API with the following commands:
 ## Diagram:
 
 ![Alt text](diagram.svg)
+
+## Cleanup
+
+To clean up resources, run `pulumi destroy` and answer the confirmation question at the prompt.

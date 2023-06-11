@@ -1,16 +1,30 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
-import { isHttpError } from '@curveball/http-errors';
+import { Unauthorized, isHttpError } from '@curveball/http-errors';
 
 export function lambdaHandler(target: Function) {
   return async function (ev: APIGatewayProxyEvent, ctx: Context): Promise<APIGatewayProxyResult> {
     let body;
     let statusCode;
     try {
-      body = JSON.stringify(await target(ev, ctx));
+      const userId: string = ev.requestContext.authorizer?.jwt?.claims?.sub ?? null;
+
+      if (!userId) {
+        throw new Unauthorized('Missing user id');
+      }
+
+      body = JSON.stringify(await target(ev, ctx, userId));
       statusCode = 200;
     } catch (err) {
       statusCode = isHttpError(err) ? err.httpStatus : 500;
-      body = JSON.stringify({ error: err });
+      if (err instanceof Error) {
+        body = JSON.stringify({ error: err.message, stack: err.stack });
+      } else {
+        body = JSON.stringify({ error: 'Unknown error occurred' });
+      }
+
+      if (!isHttpError(err)) {
+        console.error(err);
+      }
     }
 
     return {

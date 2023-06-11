@@ -15,6 +15,7 @@
         "@pulumi/pulumi": "^3.0.0",
         "aws-sdk": "^2.1390.0",
         "class-transformer": "^0.5.1",
+        "ulid": "^2.3.0",
         "zod": "^3.21.4"
     }
 }
