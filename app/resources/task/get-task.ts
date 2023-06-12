@@ -5,13 +5,7 @@ import { Event, Context } from '@app/helpers';
 import DynamoDB from '@app/helpers/dynamodb';
 import { validateTask } from './task-schema';
 
-export default {
-  path: 'GET /task/{id}',
-  name: 'get-task',
-  lambda,
-};
-
-async function lambda(ev: Event, ctx: Context, userId: string) {
+export async function getTask(ev: Event, ctx: Context, userId: string) {
   if (!ev.pathParameters?.id) {
     throw new BadRequest('Missing id');
   }

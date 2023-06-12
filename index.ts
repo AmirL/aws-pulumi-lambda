@@ -1,5 +1,8 @@
 import { setupTsConfigPaths } from './tsconfig-pulumi-fix';
-
 setupTsConfigPaths();
 
-export { endpoint } from '@infrastructure/http-api';
+import * as pulumi from '@pulumi/pulumi';
+import { apiGateway } from '@infrastructure/api-gateway';
+import { stage } from '@infrastructure/api-routes';
+
+export const stageUrl = pulumi.interpolate`${apiGateway.apiEndpoint}/${stage.name}`;

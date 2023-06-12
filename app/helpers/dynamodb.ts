@@ -63,7 +63,23 @@ async function query(tableName: string, KeyCondition: string, values: Record<str
 async function update(tableName: string, item: object, Key: Record<string, any>) {
   const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
-  const { UpdateExpression, ExpressionAttributeValues } = objectToUpdateExpression(item);
+  const updateExpressionParts: string[] = [];
+  const conditionExpressionParts: string[] = [];
+  const ExpressionAttributeValues: { [key: string]: any } = {};
+
+  Object.entries(item).forEach(([key, value]) => {
+    ExpressionAttributeValues[`:${key}`] = value;
+    updateExpressionParts.push(`${key} = :${key}`);
+  });
+
+  const UpdateExpression = `set ${updateExpressionParts.join(', ')}`;
+
+  Object.entries(Key).forEach(([key, value]) => {
+    ExpressionAttributeValues[`:${key}`] = value;
+    conditionExpressionParts.push(`${key} = :${key}`);
+  });
+
+  const ConditionExpression = conditionExpressionParts.join(' AND ');
 
   const command = new UpdateCommand({
     TableName: tableName,
@@ -71,6 +87,7 @@ async function update(tableName: string, item: object, Key: Record<string, any>)
     ExpressionAttributeValues,
     UpdateExpression,
     ReturnValues: 'ALL_NEW',
+    ConditionExpression,
   });
 
   const result = await docClient.send(command);
@@ -93,27 +110,6 @@ async function deleteItem(tableName: string, Key: Record<string, any>) {
 
 function generateId() {
   return ulid();
-}
-
-/**
- * Convert an object to an expression string and values
- * that can be used in a DynamoDB query or update
- */
-function objectToUpdateExpression(item: object) {
-  const updateExpressionParts: string[] = [];
-  const ExpressionAttributeValues: { [key: string]: any } = {};
-
-  Object.entries(item).forEach(([key, value]) => {
-    ExpressionAttributeValues[`:${key}`] = value;
-    updateExpressionParts.push(`${key} = :${key}`);
-  });
-
-  const UpdateExpression = `set ${updateExpressionParts.join(', ')}`;
-
-  return {
-    UpdateExpression,
-    ExpressionAttributeValues,
-  };
 }
 
 export default {

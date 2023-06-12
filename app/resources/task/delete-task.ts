@@ -4,13 +4,7 @@ import { taskTable } from '@infrastructure/dynamodb';
 import { Event, Context } from '@app/helpers';
 import DynamoDB from '@app/helpers/dynamodb';
 
-export default {
-  path: 'DELETE /task/{id}',
-  name: 'delete-task',
-  lambda,
-};
-
-async function lambda(ev: Event, ctx: Context, userId: string) {
+export async function deleteTask(ev: Event, ctx: Context, userId: string) {
   if (!ev.pathParameters?.id) {
     throw new BadRequest('Missing id');
   }

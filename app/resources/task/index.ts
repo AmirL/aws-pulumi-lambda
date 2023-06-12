@@ -1,10 +1,5 @@
-import getTask from './get-task';
-import createTask from './create-task';
-import updateTask from './update-task';
-import deleteTask from './delete-task';
-import getAllTasks from './get-all-tasks';
-import { IResourceRoute } from '@app/helpers';
-
-const resourceRoutes: IResourceRoute[] = [getAllTasks, getTask, createTask, updateTask, deleteTask];
-
-export default resourceRoutes;
+export { getTask } from './get-task';
+export { createTask } from './create-task';
+export { updateTask } from './update-task';
+export { deleteTask } from './delete-task';
+export { getAllTasks } from './get-all-tasks';

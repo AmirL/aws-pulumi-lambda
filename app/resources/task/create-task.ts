@@ -5,13 +5,7 @@ import DynamoDB from '@app/helpers/dynamodb';
 
 import { validateInput, validateTask } from './task-schema';
 
-export default {
-  path: 'POST /task',
-  name: 'create-task',
-  lambda,
-};
-
-async function lambda(ev: Event, ctx: Context, userId: string) {
+export async function createTask(ev: Event, ctx: Context, userId: string) {
   // parse the body json to an object
   const json = parseBodyJson(ev);
 
